@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "oderwat.indent-rainbow",
+    "vincaslt.highlight-matching-tag",
+    "dsznajder.es7-react-js-snippets",
+    "coenraads.bracket-pair-colorizer-2",
+    "formulahendry.auto-rename-tag"
+  ]
+}

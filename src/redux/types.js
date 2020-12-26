@@ -1,0 +1,9 @@
+export const SET_THEME = 'SET_THEME';
+
+export const SET_LANGUAGE = 'SET_LANGUAGE';
+
+export const SET_LOCATION = 'SET_LOCATION';
+export const REMOVE_LOCATION = 'REMOVE_LOCATION';
+
+export const SET_CURRENT_WEATHER = 'SET_CURRENT_WEATHER';
+export const SET_DAILY_FORECAST = 'SET_DAILY_FORECAST';
