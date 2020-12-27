@@ -15,18 +15,50 @@ import {
 import React from 'react';
 import { RiDrizzleLine } from 'react-icons/ri';
 
-export const determineDay = dayNum => {
-  const days = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
+export const getDay = data => {
+  const daysOfWeek = [
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
   ];
+  return daysOfWeek[new Date(data.dt * 1000).getDay()].slice(0, 3);
+};
 
-  return days[dayNum];
+export const degToTextDirection = deg => {
+  const direction = [
+    'North',
+    'North North East',
+    'North East',
+    'East North East',
+    'East',
+    'East South East',
+    'South East',
+    'South South East',
+    'South',
+    'South South West',
+    'South West',
+    'West South West',
+    'West',
+    'West North West',
+    'North West',
+    'North North West',
+  ][Math.round(deg / 22.5) % 16];
+
+  return direction;
+};
+
+export const windSpeedToText = speed => {
+  return speed < 5
+    ? ' and light winds'
+    : speed > 5 && speed < 13
+    ? ' and gentle breeze'
+    : speed > 13 && speed < 20
+    ? ' and moderate breeze'
+    : ' and strong winds';
 };
 
 export const transformDate = date => {
