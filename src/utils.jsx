@@ -51,6 +51,17 @@ export const degToTextDirection = deg => {
   return direction;
 };
 
+export const palette = [
+  '#eef1c3',
+  '#f6f5bd',
+  '#f9f2c4',
+  '#fcf2c7',
+  '#FAE3C3',
+  '#FFD6AF',
+  '#FFC6A4',
+  '#FFB3A6',
+];
+
 export const windSpeedToText = speed => {
   return speed < 5
     ? ' and light winds'

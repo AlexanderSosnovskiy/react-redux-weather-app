@@ -1,5 +1,11 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { makeStyles } from '@material-ui/core/styles';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import Typography from '@material-ui/core/Typography';
+import Box from '@material-ui/core/Box';
+import Paper from '@material-ui/core/Paper';
 import { fetchForecastWeatherData } from '../redux/actions/weatherAction';
 import Loading from './loading';
 import Error from './error';
@@ -9,19 +15,8 @@ import {
   determineIcon,
   degToTextDirection,
   windSpeedToText,
+  palette,
 } from '../utils';
-import { makeStyles } from '@material-ui/core/styles';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import Typography from '@material-ui/core/Typography';
-import Box from '@material-ui/core/Box';
-import { WiHumidity, WiStrongWind } from 'react-icons/wi';
-import { GiCrossedAirFlows } from 'react-icons/gi';
-import { MdVisibility } from 'react-icons/md';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import Slider from 'react-slick';
-import Paper from '@material-ui/core/Paper';
 
 const useStyles = makeStyles(theme => ({
   forecastMenu: {
@@ -33,6 +28,7 @@ const useStyles = makeStyles(theme => ({
   },
   forecast: {
     display: 'flex',
+    justifyContent: 'center',
   },
   forecastSlot: {
     display: 'flex',
@@ -96,34 +92,6 @@ const ForecastWeather = ({ coords }) => {
   const [activeDay, setActiveDay] = useState();
   const [hour, setHour] = useState(0);
   const [value, setValue] = useState(0);
-  const [opened, setOpened] = useState(false);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
-  const palette = [
-    '#eef1c3',
-    '#f6f5bd',
-    '#f9f2c4',
-    '#fcf2c7',
-    '#FAE3C3',
-    '#FFD6AF',
-    '#FFC6A4',
-    '#FFB3A6',
-  ];
-
-  const groupByDay = data => {
-    const grouped = data.reduce((list, item) => {
-      const forecastDate = item.dt_txt.split(' ')[0];
-      list[forecastDate] = list[forecastDate] || [];
-      list[forecastDate].push(item);
-
-      return list;
-    }, {});
-
-    setGroupedForecast(grouped);
-  };
 
   async function getForecast() {
     setIsLoading(true);
@@ -145,6 +113,22 @@ const ForecastWeather = ({ coords }) => {
     getForecast();
   }, []);
 
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
+  const groupByDay = data => {
+    const grouped = data.reduce((list, item) => {
+      const forecastDate = item.dt_txt.split(' ')[0];
+      list[forecastDate] = list[forecastDate] || [];
+      list[forecastDate].push(item);
+
+      return list;
+    }, {});
+
+    setGroupedForecast(grouped);
+  };
+
   const getDailyInfo = (data, min = [], max = [], day = '', date = '') => {
     data.map(item => {
       max.push(item.main.temp_max);
@@ -160,7 +144,9 @@ const ForecastWeather = ({ coords }) => {
 
     return (
       <>
-        <div>{`${day} ${date}`}</div>
+        <div>
+          <strong>{`${day} ${date}`}</strong>
+        </div>
         <div>
           <strong>{`${minMax.max}°C`}</strong> /{`${minMax.min}°C`}
         </div>
@@ -179,8 +165,8 @@ const ForecastWeather = ({ coords }) => {
     return {
       position: 'absolute',
       bottom: `${
-        ((sortedDailyTemp.indexOf(temp) + 2) * 100) / sortedDailyTemp.length
-      }px`,
+        ((sortedDailyTemp.indexOf(temp) + 1) * 12.5) 
+      }%`,
       left: '50%',
       width: '100%',
       transform: 'translateX(-50%)',
@@ -190,131 +176,131 @@ const ForecastWeather = ({ coords }) => {
 
   if (isLoading) {
     return <Loading isLoading={isLoading} />;
+  } else if (error) {
+    return <Error error={error} />;
   } else {
     const tiles = Object.values(groupedForecast);
     const forecastTiles = tiles.length > 5 ? tiles.slice(0, 5) : tiles;
-    createCurve();
+
     return (
-      <>
-        <Box>
-          <Paper square>
-            <Tabs
-              className={classes.forecastMenu}
-              value={value}
-              indicatorColor='primary'
-              textColor='primary'
-              onChange={handleChange}
-              variant='fullWidth'
-              aria-label='full width tabs example'
-            >
-              {forecastTiles.map((item, i) => (
-                <Tab
-                  key={item[i].dt_txt}
-                  className={classes.forecastLink}
-                  label={getDailyInfo(item)}
-                  onClick={() => {
-                    setActiveDay(item[0].dt_txt.split(' ')[0]);
-                  }}
-                />
-              ))}
-            </Tabs>
-          </Paper>
-          <Box className={classes.forecast}>
-            {groupedForecast[activeDay].map((item, i) => (
-              <div className={classes.forecastSlot}>
-                <div
-                  key={i}
-                  className={classes.forecastSlotPrimary}
-                  onClick={() => {
-                    setHour(item.dt_txt.split(' ')[1]);
-                  }}
-                >
-                  <Typography variant='h5'>
-                    {item.dt_txt.split(' ')[1].slice(0, 5)}
-                  </Typography>
-                  <div className={classes.forecastItem}>
-                    <div
-                      style={createCurve(item.main.temp)}
-                      className={classes.forecastCurve}
-                    >
-                      {determineIcon(item.weather[0].id, false, '#222', '4rem')}
-                      <Typography variant='h5'>
-                        {`${Math.round(item.main.temp)}°C`}
-                      </Typography>
-                    </div>
-                  </div>
-                  <div className={classes.forecastWind}>
-                    <span className={classes.forecastWindSpeed}>
-                      {Math.round(item.wind.speed)}
-                    </span>
-                    <span className={classes.forecastWindIcon}>
-                      <svg
-                        style={{
-                          transform: `rotate(${item.wind.deg - 90}deg)`,
-                        }}
-                        viewBox='0 0 32 32'
-                      >
-                        <rect width='100%' height='100%' fill='#FFFFFF'></rect>
-                        <rect
-                          width='100%'
-                          height='100%'
-                          stroke='none'
-                          fill='#FFFFFF'
-                        ></rect>
-                        <g
-                          transform='translate(16.0, 16.0) rotate(90.0) translate(-16.0, -16.0)'
-                          fill='#000000'
-                          stroke='none'
-                        >
-                          <path d='M13.1 5.1l2.1-2.2V16h1.6V2.9l2.1 2.2L20 4l-4-4-4 4'></path>
-                        </g>
-                        <circle
-                          fill='#FFFFFF'
-                          stroke='#000000'
-                          strokeWidth='1'
-                          cx='16'
-                          cy='16'
-                          r='9.5'
-                        ></circle>
-                      </svg>
-                    </span>
+      <Box justifyContent='center'>
+        <Paper square>
+          <Tabs
+            className={classes.forecastMenu}
+            value={value}
+            indicatorColor='primary'
+            textColor='primary'
+            onChange={handleChange}
+            variant='fullWidth'
+            aria-label='full width tabs example'
+          >
+            {forecastTiles.map((item, i) => (
+              <Tab
+                key={item[i].dt_txt}
+                className={classes.forecastLink}
+                label={getDailyInfo(item)}
+                onClick={() => {
+                  setActiveDay(item[0].dt_txt.split(' ')[0]);
+                }}
+              />
+            ))}
+          </Tabs>
+        </Paper>
+        <Box className={classes.forecast}>
+          {groupedForecast[activeDay].map((item, i) => (
+            <div className={classes.forecastSlot}>
+              <div
+                key={i}
+                className={classes.forecastSlotPrimary}
+                onClick={() => {
+                  setHour(item.dt_txt.split(' ')[1]);
+                }}
+              >
+                <Typography variant='h5'>
+                  {item.dt_txt.split(' ')[1].slice(0, 5)}
+                </Typography>
+                <div className={classes.forecastItem}>
+                  <div
+                    style={createCurve(item.main.temp)}
+                    className={classes.forecastCurve}
+                  >
+                    {determineIcon(item.weather[0].id, false, '#222', '4rem')}
+                    <Typography variant='h5'>
+                      {`${Math.round(item.main.temp)}°C`}
+                    </Typography>
                   </div>
                 </div>
-                {item.dt_txt.split(' ')[1] === hour ? (
-                  <div className={classes.forecastSlotSecondary}>
-                    <Typography variant='h6'>
-                      <strong>
-                        {`${item.weather[0].description.replace(
-                          /^./,
-                          item.weather[0].description[0].toUpperCase(),
-                        )} ${windSpeedToText(item.wind.speed)}`}
-                      </strong>
-                    </Typography>
-                    <Typography variant='h6'>
-                      {`Temperature feels like ${Math.round(
-                        item.main.feels_like,
-                      )}°C`}
-                    </Typography>
-                    <Typography variant='h6'>
-                      <div>Humidity {item.main.humidity}%</div>
-                      <div>Pressure {item.main.pressure} mb</div>
-                      <div>Visibility {item.visibility / 100}%</div>
-                    </Typography>
-                    <Typography variant='h6'>
-                      description {item.weather[0].description}
-                    </Typography>
-                    <Typography variant='h6'>
-                      {`A ${
-                        item.weather[0].description
-                      } from the ${degToTextDirection(item.wind.deg)}`}
-                    </Typography>
-                  </div>
-                ) : null}
+                <div className={classes.forecastWind}>
+                  <span className={classes.forecastWindSpeed}>
+                    {Math.round(item.wind.speed)}
+                  </span>
+                  <span className={classes.forecastWindIcon}>
+                    <svg
+                      style={{
+                        transform: `rotate(${item.wind.deg - 90}deg)`,
+                      }}
+                      viewBox='0 0 32 32'
+                    >
+                      <rect width='100%' height='100%' fill='#FFFFFF'></rect>
+                      <rect
+                        width='100%'
+                        height='100%'
+                        stroke='none'
+                        fill='#FFFFFF'
+                      ></rect>
+                      <g
+                        transform='translate(16.0, 16.0) rotate(90.0) translate(-16.0, -16.0)'
+                        fill='#000000'
+                        stroke='none'
+                      >
+                        <path d='M13.1 5.1l2.1-2.2V16h1.6V2.9l2.1 2.2L20 4l-4-4-4 4'></path>
+                      </g>
+                      <circle
+                        fill='#FFFFFF'
+                        stroke='#000000'
+                        strokeWidth='1'
+                        cx='16'
+                        cy='16'
+                        r='9.5'
+                      ></circle>
+                    </svg>
+                  </span>
+                </div>
               </div>
-            ))}
-          </Box>
+              {item.dt_txt.split(' ')[1] === hour ? (
+                <div className={classes.forecastSlotSecondary}>
+                  <Typography variant='h6'>
+                    <strong>
+                      {`${item.weather[0].description.replace(
+                        /^./,
+                        item.weather[0].description[0].toUpperCase(),
+                      )} ${windSpeedToText(item.wind.speed)}`}
+                    </strong>
+                  </Typography>
+                  <Typography variant='h6'>
+                    {`Temperature feels like ${Math.round(
+                      item.main.feels_like,
+                    )}°C`}
+                  </Typography>
+                  <Typography variant='h6'>
+                    <div>Humidity {item.main.humidity}%</div>
+                    <div>Pressure {item.main.pressure} mb</div>
+                    <div>Visibility {item.visibility / 100}%</div>
+                  </Typography>
+                  <Typography variant='h6'>
+                    description {item.weather[0].description}
+                  </Typography>
+                  <Typography variant='h6'>
+                    {`A ${
+                      item.weather[0].description
+                    } from the ${degToTextDirection(item.wind.deg)}`}
+                  </Typography>
+                </div>
+              ) : null}
+            </div>
+          ))}
         </Box>
-      </>
+      </Box>
     );
   }
 };
